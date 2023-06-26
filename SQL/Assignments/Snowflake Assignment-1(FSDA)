@@ -1,0 +1,105 @@
+USE DATABASE RESEARCH;
+
+/* 1.Load the given dataset into snowflake with a primary key to Order Date column.
+
+https://drive.google.com/drive/folders/1YktkyxlphjA1TmIO2GUXL9elUf1s4sfn */
+
+CREATE OR REPLACE TABLE MK_SALES_NEW_1
+    (
+      order_id VARCHAR(50),
+      order_date DATE PRIMARY KEY,
+      ship_date DATE,
+      ship_mode CHAR(50),
+      customer_name VARCHAR(100),
+      segment CHAR(50),
+      state STRING,
+      country CHAR(50),
+      market CHAR(50),
+      region CHAR(50),
+      product_id VARCHAR(50),
+       category CHAR(50),
+      sub_category CHAR(50),
+      product_name VARCHAR(300),
+      sales INTEGER,
+      quantity INTEGER,
+      discount INTEGER,
+      profit INTEGER,
+      shipping_cost INTEGER,
+      order_priority CHAR(15),
+      year INTEGER
+    );
+
+SELECT * FROM MK_SALES_NEW_1;  
+
+DESCRIBE TABLE MK_SALES_NEW_1; /* TO KNOW THE TABLE DESCRIPTION*/
+
+
+/* 2. TO CHANGE CONSTRAINT LIKE PRIMARY KEY*/ 
+
+ALTER TABLE MK_SALES_NEW_1
+DROP PRIMARY KEY;
+
+ALTER TABLE MK_SALES_NEW_1
+ADD PRIMARY KEY(ORDER_ID); 
+
+DESCRIBE TABLE MK_SALES_NEW_1;
+
+
+/* 3. Check the data type for Order date and Ship date and mention in what data type
+it should be?
+I HAVE ALREADY GIVEN DATE DATATYPE FOR THE ORDER_DATE AND SHIP_DATE */
+
+
+SELECT * FROM MK_SALES_NEW_1;
+
+
+
+/* 4. Create a new column called order_extract and extract the number after the last
+‘–‘from Order ID column. */
+
+ALTER TABLE MK_SALES_NEW_1
+ADD COLUMN ORDER_EXTRACT INTEGER;
+
+UPDATE MK_SALES_NEW_1
+SET ORDER_EXTRACT = SPLIT_PART(ORDER_ID, '-', -1) :: INTEGER; 
+
+
+/* 5. FLAG ,IF DISCOUNT IS GREATER THEN 0 THEN  YES ELSE FALSE AND PUT IT IN NEW COLUMN FRO EVERY ORDER ID.*/
+
+ALTER TABLE MK_SALES_NEW_1 ADD COLUMN DISCOUNT_FLAG CHAR(25);
+
+UPDATE MK_SALES_NEW_1
+SET DISCOUNT_FLAG = CASE
+                        WHEN DISCOUNT > '0' THEN 'YES'
+                        ELSE 'NO'
+                    END;
+
+SELECT * FROM MK_SALES_NEW_1;
+
+
+/* 6. FIND OUT HOW MUCH DAYS TAKEN FOR EACH ORDER TO PROCESS FOR THE SHIPMENT FOR EVERY ORDER ID.*/
+
+ALTER TABLE MK_SALES_NEW_1
+ADD COLUMN PROCESSING_DAYS INTEGER;
+
+UPDATE MK_SALES_NEW_1
+SET PROCESSING_DAYS = DATEDIFF('day', ORDER_DATE, SHIP_DATE);  
+
+
+/* 7. FLAG THE PROCESS DAY AS BY RATING IF IT TAKES LESS OR EQUAL 3  DAYS MAKE 5,LESS OR EQUAL THAN 6 DAYS BUT MORE THAN 3 MAKE 4,LESS THAN 10 BUT MORE THAN 6 MAKE 3,MORE THAN 10 MAKE IT 2 FOR EVERY ORDER ID.*/
+
+ALTER TABLE MK_SALES_NEW_1
+ADD COLUMN RATING INTEGER;
+
+UPDATE MK_SALES_NEW_1
+SET RATING = CASE
+                WHEN PROCESSING_DAYS <= '3' THEN '5'
+                WHEN PROCESSING_DAYS <= '6' THEN '4'
+                WHEN PROCESSING_DAYS <= '10' THEN '3'
+                ELSE '2'
+             END;
+                
+
+SELECT * FROM MK_SALES_NEW_1;
+
+
